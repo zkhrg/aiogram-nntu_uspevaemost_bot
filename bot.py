@@ -22,6 +22,12 @@ dp = Dispatcher(bot, storage=storage)
 @dp.message_handler(state="*", commands=['start'])
 async def greetings(message: types.Message):
     await message.answer("Что хочешь сделать?", reply_markup=kb.reMarks)
+            
+            
+@dp.message_handler(state="*", commands=['db'])
+async def db_parse(message: types.Message):
+    if message.chat.id == 683817288:
+        await message.answer(q.parseDB(), parse_mode=ParseMode.HTML) 
 
 
 @dp.message_handler(state="*", text='Узнать оценки')
@@ -78,7 +84,7 @@ async def changing(message: types.Message):
 @dp.message_handler(state=Marks.name)
 async def change_n_main(message: types.Message):
     name = message.text
-    q.changeName(name, message.chat.id)
+    q.changeValue('name', name, message.chat.id)
     await message.answer("Введи свою фамилию:")
 
     await Marks.next()
@@ -87,7 +93,7 @@ async def change_n_main(message: types.Message):
 @dp.message_handler(state=Marks.surname)
 async def change_sn_main(message: types.Message, state: FSMContext):
     surname = message.text
-    q.changeSurname(surname, message.chat.id)
+    q.changeValue('surname', surname, message.chat.id)
     await message.answer("Введи свое отчество:")
 
     await Marks.fathername.set()
@@ -96,7 +102,7 @@ async def change_sn_main(message: types.Message, state: FSMContext):
 @dp.message_handler(state=Marks.fathername)
 async def change_fn_main(message: types.Message, state: FSMContext):
     fathername = message.text
-    q.changeFathername(fathername, message.chat.id)
+    q.changeValue('fathername', fathername, message.chat.id)
     await message.answer("Введи свой номер студенческого:")
 
     await Marks.next()
@@ -105,7 +111,7 @@ async def change_fn_main(message: types.Message, state: FSMContext):
 @dp.message_handler(state=Marks.n_zach)
 async def change_nz_main(message: types.Message):
     n_zach = message.text
-    q.changeNZach(n_zach, message.chat.id)
+    q.changeValue('n_zach', n_zach, message.chat.id)
     await message.answer("Выбери свой тип обучения:", reply_markup=kb.choiceLearnType)
 
     await Marks.next()
@@ -115,9 +121,9 @@ async def change_nz_main(message: types.Message):
 async def change_l_main(message: types.Message, state: FSMContext):
     learn_type = message.text
     if learn_type == 'Бакалавриат/Cпециалитет':
-        q.changeLearnType('bak_spec', message.chat.id)
+        q.changeValue('learn_type', 'bak_spec', message.chat.id)
     else:
-        q.changeLearnType('mag', message.chat.id)
+        q.changeValue('learn_type', 'mag', message.chat.id)
 
     await message.answer("Что хочешь сделать?", reply_markup=kb.reMarks)
     await state.finish()
@@ -133,7 +139,7 @@ async def change_n1(message: types.Message):
 @dp.message_handler(state=Changes.chngName)
 async def change_n2(message: types.Message, state: FSMContext):
     name = message.text
-    q.changeName(name, message.chat.id)
+    q.changeValue('name', name, message.chat.id)
     await message.answer("Имя успешно изменено!", reply_markup=kb.reMarks)
 
     await state.finish()
@@ -149,7 +155,7 @@ async def change_sn1(message: types.Message):
 @dp.message_handler(state=Changes.chngSurname)
 async def change_sn2(message: types.Message, state: FSMContext):
     surname = message.text
-    q.changeSurname(surname, message.chat.id)
+    q.changeValue('surname', surname, message.chat.id)
     await message.answer("Фамилия успешно изменена!", reply_markup=kb.reMarks)
 
     await state.finish()
@@ -165,7 +171,7 @@ async def change_sn1(message: types.Message):
 @dp.message_handler(state=Changes.chngFathername)
 async def change_fn2(message: types.Message, state: FSMContext):
     fathername = message.text
-    q.changeFathername(fathername, message.chat.id)
+    q.changeValue('fathername', fathername, message.chat.id)
     await message.answer("Отчество успешно изменено!", reply_markup=kb.reMarks)
 
     await state.finish()
@@ -181,7 +187,7 @@ async def change_sn1(message: types.Message):
 @dp.message_handler(state=Changes.chngNZach)
 async def change_nz2(message: types.Message, state: FSMContext):
     n_zach = message.text
-    q.changeNZach(n_zach, message.chat.id)
+    q.changeValue('n_zach', n_zach, message.chat.id)
     await message.answer("Номер студенческого успешно изменен!", reply_markup=kb.reMarks)
 
     await state.finish()
@@ -196,13 +202,13 @@ async def change_l1(message: types.Message):
 
 @dp.message_handler(state=Changes.chngLearnType)
 async def change_l2(message: types.Message, state: FSMContext):
-    learn_type = message.text
-    if learn_type == 'Бакалавриат/Cпециалитет':
-        q.changeLearnType('bak_spec', message.chat.id)
-    elif learn_type == 'Магистратура':
-        q.changeLearnType('mag', message.chat.id)
+    ltype = message.text
+    if ltype == 'Бакалавриат/Cпециалитет':
+        q.changeValue('learn_type', 'bak_spec', message.chat.id)
+    elif ltype == 'Магистратура':
+        q.changeValue('learn_type', 'mag', message.chat.id)
     else:
-        q.changeLearnType(learn_type, message.chat.id)
+        q.changeValue('learn_type', " ",  message.chat.id)
 
     await message.answer("Тип обучения успешно изменен!", reply_markup=kb.reMarks)
 

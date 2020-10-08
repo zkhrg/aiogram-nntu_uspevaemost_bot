@@ -24,28 +24,8 @@ def addChatId(chat_id):
     print(result[0][0])
 
 
-def changeName(name, chat_id):
-    cur.execute(f"UPDATE users SET name = '{name}' WHERE chat_id == {chat_id}")
-    con.commit()
-
-
-def changeSurname(surname, chat_id):
-    cur.execute(f"UPDATE users SET surname = '{surname}' WHERE chat_id == {chat_id}")
-    con.commit()
-
-
-def changeFathername(fathername, chat_id):
-    cur.execute(f"UPDATE users SET fathername = '{fathername}' WHERE chat_id == {chat_id}")
-    con.commit()
-
-
-def changeNZach(n_zach, chat_id):
-    cur.execute(f"UPDATE users SET n_zach = '{n_zach}' WHERE chat_id == {chat_id}")
-    con.commit()
-
-
-def changeLearnType(learn_type, chat_id):
-    cur.execute(f"UPDATE users SET learn_type = '{learn_type}' WHERE chat_id == {chat_id}")
+def changeValue(to_change, something, chat_id):
+    cur.execute(f"UPDATE users SET {to_change} = '{something}' WHERE chat_id == {chat_id}")
     con.commit()
 
 
@@ -73,3 +53,15 @@ def actualInfo(chat_id):
               f"<b>Номер студенческого:</b> {result[0][4]}\n" \
               f"<b>Тип обучения:</b> {l_type}"
     return actInfo
+
+
+def parseDB():
+    cur.execute(f"SELECT * FROM users")
+    result = cur.fetchall()
+    string_result = ''
+    for i in range(len(result)):
+        for j in range(6):
+            string_result += f'<code>{result[i][j]} </code>'
+        string_result += f'\n\n'
+     
+    return string_result
