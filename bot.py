@@ -2,7 +2,7 @@ import logging
 import config
 import parse as par
 import keyboard as kb
-import queries as q
+from queries import db
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import ParseMode
 from aiogram.dispatcher import FSMContext
@@ -27,13 +27,13 @@ async def greetings(message: types.Message):
 @dp.message_handler(state="*", commands=['db'])
 async def db_parse(message: types.Message):
     if message.chat.id == 683817288:
-        await message.answer(q.parseDB(), parse_mode=ParseMode.HTML) 
+        await message.answer(db.parseDB(), parse_mode=ParseMode.HTML) 
 
 
 @dp.message_handler(state="*", text='Узнать оценки')
 async def choosing(message: types.Message, state: FSMContext):
-    if q.checkChatId(message.chat.id):  # есть ли chat_id в базе
-        r1 = q.findData(message.chat.id)
+    if db.checkChatId(message.chat.id):  # есть ли chat_id в базе
+        r1 = db.findData(message.chat.id)
         if par.form_marks(r1, 1):
             q_sem = par.quantity_sem(r1)
             await bot.send_message(message.from_user.id, f"Введи номер семеcтра:\n(у тебя их {q_sem})",
@@ -42,13 +42,13 @@ async def choosing(message: types.Message, state: FSMContext):
         else:
             await bot.send_message(message.from_user.id, "Студента с такими данными не найдено.\n"
                                                          f"Проверь, вот что ты ввел:\n"
-                                                         f"{q.actualInfo(message.chat.id)}",
+                                                         f"{db.actualInfo(message.chat.id)}",
                                    reply_markup=kb.reMarks, parse_mode=ParseMode.HTML)
             await state.finish()
     else:
         await bot.send_message(message.from_user.id, "Для того чтобы начать, нужно указать свои данные, "
                                                      "начнем с имени:", reply_markup=kb.btnZero)
-        q.addChatId(message.chat.id)
+        db.addChatId(message.chat.id)
         await Marks.name.set()
 
 
@@ -56,7 +56,7 @@ async def choosing(message: types.Message, state: FSMContext):
 async def knowMarks(message: types.Message, state: FSMContext):
     try:
         sem_n = int(message.text)
-        r1 = q.findData(message.chat.id)
+        r1 = db.findData(message.chat.id)
         if 0 < sem_n <= par.quantity_sem(r1):
             par.form_marks(r1, sem_n-1)
             await message.answer(par.form_marks(r1, sem_n - 1), reply_markup=kb.reMarks, parse_mode=ParseMode.HTML)
@@ -71,38 +71,38 @@ async def knowMarks(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state="*", text='Изменить информацию')
 async def changing(message: types.Message):
-    if q.checkChatId(message.chat.id):  # есть ли chat_id в базе
+    if db.checkChatId(message.chat.id):  # есть ли chat_id в базе
         await bot.send_message(message.from_user.id, "Что нужно изменить?", reply_markup=kb.changeKeyboard)
         await Changes.st1.set()
     else:
         await bot.send_message(message.from_user.id, "Для того чтобы начать, нужно указать свои данные,"
                                                      "начнем с имени:", reply_markup=kb.btnZero)
-        q.addChatId(message.chat.id)
+        db.addChatId(message.chat.id)
         await Marks.name.set()
 
 
 @dp.message_handler(state=Marks.name)
 async def change_n_main(message: types.Message):
     name = message.text
-    q.changeValue('name', name, message.chat.id)
+    db.changeValue('name', name, message.chat.id)
     await message.answer("Введи свою фамилию:")
 
     await Marks.next()
 
 
 @dp.message_handler(state=Marks.surname)
-async def change_sn_main(message: types.Message, state: FSMContext):
+async def change_sn_main(message: types.Message):
     surname = message.text
-    q.changeValue('surname', surname, message.chat.id)
+    db.changeValue('surname', surname, message.chat.id)
     await message.answer("Введи свое отчество:")
 
     await Marks.fathername.set()
 
 
 @dp.message_handler(state=Marks.fathername)
-async def change_fn_main(message: types.Message, state: FSMContext):
+async def change_fn_main(message: types.Message):
     fathername = message.text
-    q.changeValue('fathername', fathername, message.chat.id)
+    db.changeValue('fathername', fathername, message.chat.id)
     await message.answer("Введи свой номер студенческого:")
 
     await Marks.next()
@@ -111,7 +111,7 @@ async def change_fn_main(message: types.Message, state: FSMContext):
 @dp.message_handler(state=Marks.n_zach)
 async def change_nz_main(message: types.Message):
     n_zach = message.text
-    q.changeValue('n_zach', n_zach, message.chat.id)
+    db.changeValue('n_zach', n_zach, message.chat.id)
     await message.answer("Выбери свой тип обучения:", reply_markup=kb.choiceLearnType)
 
     await Marks.next()
@@ -121,9 +121,9 @@ async def change_nz_main(message: types.Message):
 async def change_l_main(message: types.Message, state: FSMContext):
     learn_type = message.text
     if learn_type == 'Бакалавриат/Cпециалитет':
-        q.changeValue('learn_type', 'bak_spec', message.chat.id)
+        db.changeValue('learn_type', 'bak_spec', message.chat.id)
     else:
-        q.changeValue('learn_type', 'mag', message.chat.id)
+        db.changeValue('learn_type', 'mag', message.chat.id)
 
     await message.answer("Что хочешь сделать?", reply_markup=kb.reMarks)
     await state.finish()
@@ -139,7 +139,7 @@ async def change_n1(message: types.Message):
 @dp.message_handler(state=Changes.chngName)
 async def change_n2(message: types.Message, state: FSMContext):
     name = message.text
-    q.changeValue('name', name, message.chat.id)
+    db.changeValue('name', name, message.chat.id)
     await message.answer("Имя успешно изменено!", reply_markup=kb.reMarks)
 
     await state.finish()
@@ -155,7 +155,7 @@ async def change_sn1(message: types.Message):
 @dp.message_handler(state=Changes.chngSurname)
 async def change_sn2(message: types.Message, state: FSMContext):
     surname = message.text
-    q.changeValue('surname', surname, message.chat.id)
+    db.changeValue('surname', surname, message.chat.id)
     await message.answer("Фамилия успешно изменена!", reply_markup=kb.reMarks)
 
     await state.finish()
@@ -171,7 +171,7 @@ async def change_sn1(message: types.Message):
 @dp.message_handler(state=Changes.chngFathername)
 async def change_fn2(message: types.Message, state: FSMContext):
     fathername = message.text
-    q.changeValue('fathername', fathername, message.chat.id)
+    db.changeValue('fathername', fathername, message.chat.id)
     await message.answer("Отчество успешно изменено!", reply_markup=kb.reMarks)
 
     await state.finish()
@@ -187,7 +187,7 @@ async def change_sn1(message: types.Message):
 @dp.message_handler(state=Changes.chngNZach)
 async def change_nz2(message: types.Message, state: FSMContext):
     n_zach = message.text
-    q.changeValue('n_zach', n_zach, message.chat.id)
+    db.changeValue('n_zach', n_zach, message.chat.id)
     await message.answer("Номер студенческого успешно изменен!", reply_markup=kb.reMarks)
 
     await state.finish()
@@ -204,11 +204,11 @@ async def change_l1(message: types.Message):
 async def change_l2(message: types.Message, state: FSMContext):
     ltype = message.text
     if ltype == 'Бакалавриат/Cпециалитет':
-        q.changeValue('learn_type', 'bak_spec', message.chat.id)
+        db.changeValue('learn_type', 'bak_spec', message.chat.id)
     elif ltype == 'Магистратура':
-        q.changeValue('learn_type', 'mag', message.chat.id)
+        db.changeValue('learn_type', 'mag', message.chat.id)
     else:
-        q.changeValue('learn_type', " ",  message.chat.id)
+        db.changeValue('learn_type', " ",  message.chat.id)
 
     await message.answer("Тип обучения успешно изменен!", reply_markup=kb.reMarks)
 
